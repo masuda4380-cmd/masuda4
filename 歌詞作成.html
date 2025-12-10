@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>歌詞作成ツール</title>
+    <style>
+        /* 基本レイアウト */
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f9f9ff 100%);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            margin-top: 40px;
+            width: 90%;
+            max-width: 650px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #444;
+        }
+
+        p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+
+        .button-row {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-generate {
+            background-color: #4a6fa5;
+            color: #fff;
+        }
+        .btn-generate:hover {
+            background-color: #3a5a82;
+        }
+
+        .btn-reset {
+            background-color: #a5444a;
+            color: #fff;
+        }
+        .btn-reset:hover {
+            background-color: #82353a;
+        }
+
+        .lyrics-output {
+            margin-top: 30px;
+            background-color: #f7f9fc;
+            border: 1px solid #e3e7f1;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>歌詞作成ツール</h1>
+        <p>思い浮かんだ単語やフレーズを入力すると、それらをもとにオリジナルの歌詞が生成されます。1番から3番までの歌詞を作成します。</p>
+        <label for="input-words">単語やフレーズ（改行やスペースで区切って入力してください）:</label>
+        <textarea id="input-words" placeholder="例: 星 空 涙 希望"></textarea>
+        <div class="button-row">
+            <button id="generate-btn" class="btn btn-generate">歌詞を生成</button>
+            <button id="reset-btn" class="btn btn-reset">リセット</button>
+        </div>
+        <div id="lyrics" class="lyrics-output">ここに生成された歌詞が表示されます。</div>
+    </div>
+
+    <script>
+        // 歌詞のテンプレートを用意します。{word} は入力された単語で置き換えられます。
+        const templates = [
+            '静かな夜に{word}を思い描いて\n心の中でそっと囁くメロディー',
+            '{word}の風が頬を撫でて\n遠い記憶が揺れ始める',
+            '星空に浮かぶ{word}に願いを込めて\n明日へと歩みを進めよう',
+            '{word}が織りなすリズムに身を委ね\n自由な心で踊り続ける',
+            '深い海の底で見つけた{word}の光\nあなたへの想いを映し出す',
+            '{word}の香りが道案内となって\n迷いながらも進んでいく',
+            'やさしい声で囁く{word}に救われて\n明日の自分を信じられる',
+            '季節が巡るたびに{word}は色を変え\n心の景色を染めていく',
+            '雨上がりの空に輝く{word}を見上げ\n涙もいつか虹に変わる',
+            '遠く離れても{word}はそばにいる\n永遠に続く約束の歌'
+        ];
+
+        // ランダムな数値を生成するヘルパー関数
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        // 入力ワードから歌詞を生成する関数
+        function generateLyrics() {
+            const inputText = document.getElementById('input-words').value.trim();
+            const outputDiv = document.getElementById('lyrics');
+
+            if (!inputText) {
+                outputDiv.textContent = 'まずは単語やフレーズを入力してください。';
+                return;
+            }
+
+            let words = inputText.split(/\s+/).filter(word => word.length > 0);
+            if (words.length === 0) {
+                outputDiv.textContent = '入力された内容が認識できませんでした。';
+                return;
+            }
+
+            const versesCount = 3;
+            const linesPerVerse = 3; // 各番の行数（テンプレートの行構造により実際は倍になる）
+            let lyricsParts = [];
+
+            for (let v = 0; v < versesCount; v++) {
+                const verseNumber = v + 1;
+                lyricsParts.push(`【${verseNumber}番】`);
+                for (let l = 0; l < linesPerVerse; l++) {
+                    const template = templates[getRandomInt(templates.length)];
+                    const randomWord = words[getRandomInt(words.length)];
+                    const line = template.replace(/\{word\}/g, randomWord);
+                    lyricsParts.push(line);
+                }
+                if (v !== versesCount - 1) {
+                    lyricsParts.push('');
+                }
+            }
+
+            const result = lyricsParts.join('\n');
+            outputDiv.textContent = result;
+        }
+
+        // リセット用関数
+        function resetFields() {
+            document.getElementById('input-words').value = '';
+            document.getElementById('lyrics').textContent = 'ここに生成された歌詞が表示されます。';
+        }
+
+        document.getElementById('generate-btn').addEventListener('click', generateLyrics);
+        document.getElementById('reset-btn').addEventListener('click', resetFields);
+    </script>
+</body>
+
+</html>
